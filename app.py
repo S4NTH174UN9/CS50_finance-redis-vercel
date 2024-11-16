@@ -10,7 +10,6 @@ from helpers import apology, login_required, lookup, usd
 
 # Configure application
 app = Flask(__name__, instance_path=os.path.join(os.getcwd(), 'tmp'))
-app = Flask(__name__)
 
 app.secret_key ='qwertyuiopasdfghjklzxcvbnm'
 # Custom filter
