@@ -26,7 +26,7 @@ app.config["SESSION_USE_SIGNER"] = True
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
 # Configure CS50 Library to use SQLite database
-db1 = SQL("sqlite:////tmp/finance.db")
+db1 = SQL("sqlite:///tmp/finance.db")
 
 Session(app)
 
