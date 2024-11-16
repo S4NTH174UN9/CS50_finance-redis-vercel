@@ -14,10 +14,8 @@ app = Flask(__name__)
 app.jinja_env.filters["usd"] = usd
 
 # Configure session to use filesystem (instead of signed cookies)
-app.config["SESSION_TYPE"] = "sqlalchemy"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///session.db"
-db = SQLAlchemy(app)
-
+app.config["SESSION_PERMANENT"] = False
+app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 # Configure CS50 Library to use SQLite database
