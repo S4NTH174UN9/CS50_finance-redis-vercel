@@ -5,22 +5,30 @@ from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_sqlalchemy import SQLAlchemy
+from datetime import timedelta
 from helpers import apology, login_required, lookup, usd
 
 # Configure application
 app = Flask(__name__)
 
+app.secret_key ='qwertyuiopasdfghjklzxcvbnm'
 # Custom filter
 app.jinja_env.filters["usd"] = usd
-
+# Database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sessions.db'  # Default database
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Configure session to use filesystem (instead of signed cookies)
+db = SQLAlchemy(app)
+app.config["SESSION_TYPE"] = 'sqlalchemy'
+app.config['SESSION_SQLALCHEMY'] = db
 app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-Session(app)
+app.config["SESSION_USE_SIGNER"] = True
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(minutes=30)
 
 # Configure CS50 Library to use SQLite database
-db = SQL("sqlite:///finance.db")
+db1 = SQL("sqlite:///finance.db")
 
+Session(app)
 
 @app.after_request
 def after_request(response):
@@ -35,7 +43,7 @@ def after_request(response):
 def inject_balance():
     if session.get("user_id"):
         user_id = session["user_id"]
-        user_data = db.execute("SELECT cash FROM users WHERE id = ?", user_id)
+        user_data = db1.execute("SELECT cash FROM users WHERE id = ?", user_id)
         if user_data:
             balance = user_data[0]["cash"]
             return dict(balance=balance)
@@ -48,7 +56,7 @@ def index():
     """Show portfolio of stocks"""
     user_id = session["user_id"]
 
-    stocks = db.execute(
+    stocks = db1.execute(
         "SELECT symbol, SUM(shares) AS total_shares FROM transactions WHERE user_id = ? GROUP BY symbol HAVING total_shares > 0",
         user_id
     )
@@ -74,7 +82,7 @@ def index():
                 "total": total_value
             })
 
-    user_data = db.execute("SELECT cash FROM users WHERE id = ?", user_id)
+    user_data = db1.execute("SELECT cash FROM users WHERE id = ?", user_id)
     cash = user_data[0]["cash"] if user_data else 0
 
     grand_total = total_stock_value + cash
@@ -107,14 +115,14 @@ def buy():
         total_cost = stock_data["price"] * shares
 
         # Check if user has enough cash
-        user_cash = db.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"]
+        user_cash = db1.execute("SELECT cash FROM users WHERE id = ?", user_id)[0]["cash"]
         if user_cash < total_cost:
             flash("Not Enough cash", "danger")
             return render_template("buy.html"),400
 
         # Update cash and insert transaction
-        db.execute("UPDATE users SET cash = cash - ? WHERE id = ?", total_cost, user_id)
-        db.execute("INSERT INTO transactions (user_id, symbol, shares, price, status) VALUES (?, ?, ?, ?, ?)",
+        db1.execute("UPDATE users SET cash = cash - ? WHERE id = ?", total_cost, user_id)
+        db1.execute("INSERT INTO transactions (user_id, symbol, shares, price, status) VALUES (?, ?, ?, ?, ?)",
                    user_id, symbol, shares, stock_data["price"], "BUY")
 
         return redirect("/")
@@ -130,12 +138,12 @@ def history():
     if request.method == "POST":
         id = request.form.get("clear")
         if id == "all":
-            db.execute("DELETE FROM transactions")
+            db1.execute("DELETE FROM transactions")
             return redirect("/history")
 
     user_id = session["user_id"]
 
-    transactions = db.execute(
+    transactions = db1.execute(
         "SELECT symbol, shares, price, transacted, status FROM transactions WHERE user_id = ?", user_id)
 
     return render_template("history.html", transactions=transactions)
@@ -158,7 +166,7 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute(
+        rows = db1.execute(
             "SELECT * FROM users WHERE username = ?", request.form.get("username")
         )
 
@@ -231,7 +239,7 @@ def register():
             return render_template("register.html"),400
 
         # Check if username already exists
-        existing_user = db.execute("SELECT * FROM users WHERE username = ?", username)
+        existing_user = db1.execute("SELECT * FROM users WHERE username = ?", username)
         if existing_user:
             return apology("username already exists", 400)
         # Check if passwords match
@@ -243,7 +251,7 @@ def register():
 
         try:
             # Insert new user into the database
-            db.execute("INSERT INTO users (username, hash) VALUES (?, ?)",
+            db1.execute("INSERT INTO users (username, hash) VALUES (?, ?)",
                        username, hashed_password)
             return redirect("/login")
 
@@ -262,8 +270,9 @@ def sell():
     user_id = session["user_id"]
 
     # Fetch user's stocks for the dropdown menu
-    user_stocks = db.execute(
-        "SELECT symbol, SUM(shares) AS total_shares FROM transactions WHERE user_id = ? GROUP BY symbol HAVING total_shares > 0", user_id)
+    user_stocks = db1.execute(
+        "SELECT symbol, SUM(shares) AS total_shares FROM transactions WHERE user_id = ? GROUP BY symbol HAVING total_shares > 0",
+          user_id)
 
     if request.method == "POST":
         symbol = request.form.get("symbol")
@@ -285,7 +294,7 @@ def sell():
             return render_template("sell.html", portfolio=user_stocks),400
 
         # Check if user has enough shares to sell
-        stock_owned = db.execute(
+        stock_owned = db1.execute(
             "SELECT SUM(shares) AS total_shares FROM transactions WHERE user_id = ? AND symbol = ?", user_id, symbol)[0]["total_shares"]
         if stock_owned < shares:
             flash("Too many shares", "danger")
@@ -293,10 +302,14 @@ def sell():
 
         # Calculate sale amount, update cash, and insert transaction
         sale_amount = stock_data["price"] * shares
-        db.execute("UPDATE users SET cash = cash + ? WHERE id = ?", sale_amount, user_id)
-        db.execute("INSERT INTO transactions (user_id, symbol, shares, price, status) VALUES (?, ?, ?, ?, ?)",
+        db1.execute("UPDATE users SET cash = cash + ? WHERE id = ?", sale_amount, user_id)
+        db1.execute("INSERT INTO transactions (user_id, symbol, shares, price, status) VALUES (?, ?, ?, ?, ?)",
                    user_id, symbol, -shares, stock_data["price"], "SELL")
 
         return redirect("/")
 
     return render_template("sell.html", portfolio=user_stocks)
+
+if __name__=='__main__':
+    db.create_all()
+    app.run(debug=True)
