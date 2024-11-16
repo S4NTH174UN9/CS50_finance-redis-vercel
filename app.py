@@ -9,13 +9,14 @@ from datetime import timedelta
 from helpers import apology, login_required, lookup, usd
 
 # Configure application
+app = Flask(__name__, instance_path=os.path.join(os.getcwd(), 'tmp'))
 app = Flask(__name__)
 
 app.secret_key ='qwertyuiopasdfghjklzxcvbnm'
 # Custom filter
 app.jinja_env.filters["usd"] = usd
 # Database configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sessions.db'  # Default database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'sessions.db') # Default database
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Configure session to use filesystem (instead of signed cookies)
 db = SQLAlchemy(app)
