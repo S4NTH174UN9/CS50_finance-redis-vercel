@@ -1,0 +1,32 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    <title>Porfolio</title>
+{% endblock %}
+
+{% block main %}
+    <h1>Stock price</h1>
+    <table class="table table-bordered table-dark">
+        <thead>
+            <tr>
+                <th>Symbol</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>{{ symbol }}</td>
+                <td>{{ name }}</td>
+                <td>{{ price }}</td>
+                <td>
+                    <form action="/buy" method="get">
+                        <input type="hidden" name="al_symbol" value="{{ symbol }}">
+                        <button type="submit" class="btn btn-primary">Buy</button>
+                    </form>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+{% endblock %}
