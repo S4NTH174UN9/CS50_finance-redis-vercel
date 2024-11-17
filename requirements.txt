@@ -1,6 +1,7 @@
+cs50
 Flask
 Flask-Session
-cs50
-Werkzeug
-redis
-python-dotenv
+pytz
+requests
+werkzeug
+Redis
