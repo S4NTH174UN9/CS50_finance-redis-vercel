@@ -4,4 +4,5 @@ Flask-Session
 pytz
 requests
 werkzeug
-Redis
+redis
+python-dotenv
