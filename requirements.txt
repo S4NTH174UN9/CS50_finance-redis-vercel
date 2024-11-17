@@ -1,8 +1,0 @@
-Flask
-Flask-Session
-Flask-SQLAlchemy
-pytz
-requests
-Werkzeug
-cs50
-gunicorn
