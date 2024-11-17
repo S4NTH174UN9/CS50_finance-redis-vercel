@@ -1,7 +1,6 @@
-cs50
-Flask
-Flask-Session
-Flask-Sqlalchemy
-pytz
-requests
-werkzeug
+Flask==2.3.2
+Flask-Session==0.4.0
+cs50==4.0.0
+Werkzeug==2.3.7
+redis==5.3.0
+python-dotenv==1.0.0
