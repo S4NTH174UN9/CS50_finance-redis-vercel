@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Buy Shares
+{% endblock %}
+
+{% block main %}
+    <h2>Buy Shares</h2>
+
+    <form action="/buy" method="post" style="display: flex; align-items: center; gap: 10px;">
+        <div class="form-group">
+            <input type="text" class="form-control" id="symbol" name="symbol" value="{{ al_symbol if al_symbol else '' }}" placeholder="Stock symbol" style="width: 150px;">
+        </div>
+
+        <div class="form-group" style="display: flex; align-items: center;">
+            <button type="button" class="btn btn-secondary" id="decrease-shares" style="width: 40px; height: 40px;">-</button>
+            <input type="number" class="form-control" id="shares" name="shares" value="1" required style="width: 80px; text-align: center; height: 40px;">
+            <button type="button" class="btn btn-secondary" id="increase-shares" style="width: 40px; height: 40px;">+</button>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="height: 40px;">BUY</button>
+    </form>
+{% endblock %}
