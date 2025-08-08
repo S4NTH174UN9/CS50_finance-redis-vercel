@@ -1,8 +1,0 @@
-cs50
-Flask
-Flask-Session
-pytz
-requests
-werkzeug
-redis
-python-dotenv
